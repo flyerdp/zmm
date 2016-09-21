@@ -3,8 +3,9 @@
     
  	Author: Mike Maxwell 2016
     
-    2.0.0a 2016-05-07	Fetch correct hub id when creating child device
-	    
+	2.1.0	2016-09-18	Add suport for Minimum Active Threshold (instead of all) in a zone of False Motion Reduction.
+	2.0.0a	2016-05-07	Fetch correct hub id when creating child device
+
 	This software if free for Private Use. You may use and modify the software without distributing it.
  
 	This software and derivatives may not be used for commercial purposes.
@@ -52,7 +53,7 @@ def getHubID(){
 }
 
 def initialize() {
-	state.vChild = "2.0.0a"
+	state.vChild = "2.1.0"
     parent.updateVer(state.vChild)
 	state.nextRunTime = 0
 	state.zoneTriggerActive = false
@@ -83,13 +84,14 @@ def activityTimeoutHandler(evtTime,device){
 }
 
 //False motion reduction
-def allMotionsActive(evtTime){
-	def enable
+def activeThresholdReached(evtTime){
     def window = settings.activationWindowFD.toInteger()
-	enable = motionSensors.currentState("motion").every{ s -> s.value == "active" && (evtTime - s.date.getTime()) < window}
-	//log.debug "allMotionsActive:${enable}"
-    if (!enable) log.trace "False Motion Detected!"
-    return enable
+	def minimumActiveThreshold = settings.minimumActiveThresholdFD.toInteger()
+	def activeCount = motionSensors.currentState("motion").count{ s -> s.value == "active" && (evtTime - s.date.getTime()) < window}
+	//log.debug "activeCount:${activeCount}"
+	def thresholdReached = activeCount >= minimumActiveThreshold
+    if (!thresholdReached) log.trace "False Motion Detected!"
+    return thresholdReached
 }
 
 //Triggered Activation
@@ -133,7 +135,7 @@ def activeHandler(evt){
   		switch (settings.zoneType) {
     		//False motion reduction
 			case "0":
-        		if (allMotionsActive(evtTime)) zoneOn() 
+        		if (activeThresholdReached(evtTime)) zoneOn() 
 				break
         	//Motion Aggregation
 			case "1":
@@ -270,6 +272,14 @@ def main(){
                 			,options		: [[1000:"1 Second"],[1500:"1.5 Seconds"],[2000:"2 Seconds"],[2500:"2.5 Seconds"],[3000:"3 Seconds"],[4000:"4 Seconds"],[5000:"5 Seconds"],[6000:"6 Seconds"],[7000:"7 Seconds"],[8000:"8 Seconds"],[9000:"9 Seconds"],[10000:"10 Seconds"],[60000:"1 Minute"],[120000:"2 Minutes"],[180000:"3 Minutes"],[240000:"4 Minutes"],[300000:"5 Minutes"],[600000:"10 Minutes"]]
                 			,defaultValue	: 2000
             			)
+            			input(
+            				name			: "minimumActiveThresholdFD"
+                			,title			: "Minimum Active Threshold:"
+                			,multiple		: false
+                			,required		: true
+                			,type			: "number"
+                			,defaultValue	: 2
+            			)
                     }
           			if (zType == "2"){
             			input(
@@ -371,7 +381,7 @@ def getURL(zType){
 def getDescription(zType){
    switch (zType) {
 		case "0":
-			return	"When all motion sensors activate within the Activation Window, the zone will activate." +
+			return	"When at least the Minimum Active Threshold number of motion sensors activate within the Activation Window, the zone will activate." +
 					"\r\nThe zone will deactivate when all motion sensors are inactive."
 			break
 		case "1":
