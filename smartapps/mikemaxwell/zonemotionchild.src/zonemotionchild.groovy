@@ -3,6 +3,7 @@
     
  	Author: Mike Maxwell 2016
     
+    2.1.1	2016-10-24	Add suport for Acceleration sensors as triggers
 	2.1.0	2016-09-18	Add suport for Minimum Active Threshold (instead of all) in a zone of False Motion Reduction.
 	2.0.0a	2016-05-07	Fetch correct hub id when creating child device
 
@@ -53,7 +54,7 @@ def getHubID(){
 }
 
 def initialize() {
-	state.vChild = "2.1.0"
+	state.vChild = "2.1.1"
     parent.updateVer(state.vChild)
 	state.nextRunTime = 0
 	state.zoneTriggerActive = false
@@ -99,15 +100,7 @@ def anyTriggersActive(evtTime){
 	def enable = false
     def window = settings.activationWindowTA.toInteger()
     def evtStart = new Date(evtTime - window)
-	//log.trace "tm:${triggerMotions.inspect()}"
-	//log.trace "tc:${triggerContacts.inspect()}"
     if (triggerMotions){
-    	//def states = triggerMotions.statesSince("motion", evtStart)
-        //triggerMotions.each{s ->
-        //	def st = s.latestState("motion")
-        //	log.trace "tm: ${s.displayName} ${st.date.format('yyyy-MM-dd HH:mm:ss')}"
-        //}
-    	//log.trace "tm:${triggertMotions}"
     	enable = triggerMotions.any{ s -> s.statesSince("motion", evtStart).size > 0}
         //log.debug "triggerMotions:${enable}"
     }
@@ -119,6 +112,11 @@ def anyTriggersActive(evtTime){
     	enable = triggerSwitches.any{ s -> s.statesSince("switch", evtStart).size > 0}
         //log.debug "triggerSwitches:${state}"
     }
+    if (!enable && triggerAccel){
+    	enable = triggerAccel.any{ s -> s.statesSince("acceleration", evtStart).size > 0}
+        //log.debug "triggerAccel:${state}"
+    }
+    
     if (!enable) log.trace "Qualifying triggers were not Detected!"
     //log.debug "anyTriggersActive - final:${enable}"
     return enable
@@ -351,13 +349,20 @@ def triggers(){
                 		,multiple	: true
                 		,required	: false
                 		,type		: "capability.switch"
-            		)                    
+            		) 
+					input(
+            			name		: "triggerAccel"
+                		,title		: "Vibration Sensors"
+                		,multiple	: true
+                		,required	: false
+                		,type		: "capability.accelerationSensor"
+            		)                     
 			}
 		}
 }
 
 def triggerPageComplete(){
-	if (triggerMotions || triggerContacts || triggerSwitches){
+	if (triggerMotions || triggerContacts || triggerSwitches || triggerAccel){
     	return "complete"
     } else {
     	return null
