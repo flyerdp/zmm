@@ -18,7 +18,7 @@ definition(
     singleInstance: true,
     namespace: "MikeMaxwell",
     author: "Mike Maxwell",
-    description: "Installs and triggers a Simulated Motion Sensor using multiple physical motion sensors, optional inputs and triggers to enable zone.",
+    description: "Installs and triggers a Simulated Motion Sensor using multiple physical motion sensors, optional inputs and triggers to enable zone, three zone types are available depending on the use case.",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Solution/areas.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Solution/areas@2x.png",
