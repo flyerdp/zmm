@@ -12,8 +12,9 @@
  *
  */
 metadata {
-	definition (name: "simulatedMotionSensor", namespace: "MikeMaxwell", author: "SmartThings") {
+	definition (name: "simulatedMotionSensor", namespace: "MikeMaxwell", author: "Mike Maxwell") {
 		capability "Motion Sensor"
+		capability "Sensor"
 		command "active"
 		command "inactive"
 	}
