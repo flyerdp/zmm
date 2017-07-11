@@ -150,7 +150,7 @@ def activeHandler(evt){
             		activityTimeoutHandler(evtTime,device)
             	}
 	        	break
-            //Exit Activation
+            //PIR To PIR Traverse Activation (not implimented at all)
 			case "3":
         		if (!state.zoneTriggerActive && anyTriggersActive(evtTime)){
             		zoneOn()
@@ -263,7 +263,7 @@ def main(){
                         , title				: ""
 					) 
                     //Zones 0 - 2
-                    if (zType >= 0 && zType <=3) {
+                    if (zType >= "0" && zType <= "3") {
                     input(
             			name		: "motionSensors"
                 		,title		: "Motion Sensors:"
@@ -320,7 +320,7 @@ def main(){
                 		,type		: "capability.motionSensor"
             		)
                     	input(
-            			name		: "motionSensorsTo"
+            			name		: "motionSensorsDest"
                 		,title		: "Destination Location Motion Sensor:"
                 		,multiple	: false
                 		,required	: true
@@ -340,7 +340,7 @@ def main(){
                 		,multiple		: false
                 		,required		: true
                 		,type			: "number"
-                		,defaultValue	: 60
+                		,defaultValue	: 20
             		)
                     }                    
             	} //end section Zone settings
@@ -445,7 +445,6 @@ def getDescription(zType){
             		"\r\nThe method to determine traversal from one area to another is by sensing motion at" +
                     "\rthe first sensor, then motion in the second sensor followed by inactivity in the first sensor for a specific amount of time." +
                     "\rThis gives a sense of traffic flow for better motion control but is not 100% perfect." +
-                    "\r\nTwo people entering while one person leaves could trigger a false positive." +
                     "\r\nThe zone will deactivate when Both Sensors are inactive."
             break
  	}
