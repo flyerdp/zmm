@@ -263,7 +263,7 @@ def main(){
                         , title				: ""
 					) 
                     //Zones 0 - 2
-                    if (zType >= "0" && zType <= "3") {
+                    if (zType >= "0" && zType <= "2") {
                     input(
             			name		: "motionSensors"
                 		,title		: "Motion Sensors:"
@@ -331,16 +331,18 @@ def main(){
                 		,title			: "Threshold in seconds to wait for Inactivity of First Sensor:"
                 		,multiple		: false
                 		,required		: true
-                		,type			: "number"
-                		,defaultValue	: 10
+                		,type			: "enum"
+                		,options		:  [[5000:"5 Seconds"],[10000:"10 Seconds"],[15000:"15 Seconds"],[20000:"20 Seconds"],[30000:"30 Seconds"],[45000:"45 Seconds"],[60000:"1 Minute"]]
+                		,defaultValue	: 10000
             		)
                         input(
             			name			: "inactiveDurationST"
                 		,title			: "Duration in seconds of Inactivity of First Sensor Before Triggering Zone:"
                 		,multiple		: false
                 		,required		: true
-                		,type			: "number"
-                		,defaultValue	: 20
+                		,type			: "enum"
+                		,options		: [[10000:"10 Seconds"],[15000:"15 Seconds"],[20000:"20 Seconds"],[30000:"30 Seconds"],[40000:"40 Seconds"],[50000:"50 Seconds"],[60000:"1 Minute"]]
+                		,defaultValue	: 20000
             		)
                     }                    
             	} //end section Zone settings
