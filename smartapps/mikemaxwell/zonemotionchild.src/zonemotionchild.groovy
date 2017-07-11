@@ -150,6 +150,16 @@ def activeHandler(evt){
             		activityTimeoutHandler(evtTime,device)
             	}
 	        	break
+            //PIR To PIR Traverse Activation (not implimented at all)
+			case "3":
+        		if (!state.zoneTriggerActive && anyTriggersActive(evtTime)){
+            		zoneOn()
+                	activityTimeoutHandler(evtTime,device)
+                	state.zoneTriggerActive = true
+            	} else if (state.zoneTriggerActive){
+            		activityTimeoutHandler(evtTime,device)
+            	}
+	        	break
  		}
     } else {
     	log.debug "modeOK: False"
@@ -232,23 +242,16 @@ def main(){
                         ,multiple	: false
                         ,required	: true
                     )
-					input(
-            			name		: "motionSensors"
-                		,title		: "Motion Sensors:"
-                		,multiple	: true
-                		,required	: true
-                		,type		: "capability.motionSensor"
-            		)                    
                     input(
                         name					: "zoneType"
                         ,type					: "enum"
                         ,title					: "Zone Type"
                         ,multiple				: false
                         ,required				: true
-                        ,options				: [[0:"False Motion Reduction"],[1:"Motion Aggregation"],[2:"Triggered Activation"]]
+                        ,options				: [[0:"False Motion Reduction"],[1:"Motion Aggregation"],[2:"Triggered Activation"],[3:"Sensor Traverse Activation"]]
                         ,submitOnChange			: true
                     )
-            }
+             }
             if (zType){
                 section(){
                   	paragraph getDescription(zType)
@@ -258,7 +261,17 @@ def main(){
                         , required			: false
                         , description		: "Tap to view the zone graphic..."
                         , title				: ""
-					)                    
+					) 
+                    //Zones 0 - 2
+                    if (zType >= "0" && zType <= "3") {
+                    input(
+            			name		: "motionSensors"
+                		,title		: "Motion Sensors:"
+                		,multiple	: true
+                		,required	: true
+                		,type		: "capability.motionSensor"
+            		)
+                    }
                 	//False motion reduction
                     if (zType == "0"){
             			input(
@@ -297,18 +310,39 @@ def main(){
                         	,description: null
                             ,state		: triggerPageComplete()
                      	)
+                    }     
+          			if (zType == "3"){
+                        input(
+            			name		: "motionSensors"
+                		,title		: "Origin Location Motion Sensor:"
+                		,multiple	: false
+                		,required	: true
+                		,type		: "capability.motionSensor"
+            		)
+                    	input(
+            			name		: "motionSensorsDest"
+                		,title		: "Destination Location Motion Sensor:"
+                		,multiple	: false
+                		,required	: true
+                		,type		: "capability.motionSensor"
+            		) 
+                        input(
+            			name			: "inactiveThresholdST"
+                		,title			: "Threshold in seconds to wait for Inactivity of First Sensor:"
+                		,multiple		: false
+                		,required		: true
+                		,type			: "number"
+                		,defaultValue	: 10
+            		)
+                        input(
+            			name			: "inactiveDurationST"
+                		,title			: "Duration in seconds of Inactivity of First Sensor Before Triggering Zone:"
+                		,multiple		: false
+                		,required		: true
+                		,type			: "number"
+                		,defaultValue	: 20
+            		)
                     }                    
-          			if (zType == "1" || zType == "2"){
-        				input(
-            				name			: "zoneTimeout"
-                			,title			: "Activity Timeout:"
-                			,multiple		: false
-                			,required		: true
-                			,type			: "enum"
-                			,options		: [[60:"1 Minute"],[120:"2 Minutes"],[180:"3 Minutes"],[240:"4 Minutes"],[300:"5 Minutes"],[600:"10 Minutes"],[900:"15 Minutes"],[1800:"30 Minutes"],[3600:"1 Hour"]]
-                			,defaultValue	: 300
-            			)                  
-                    }
             	} //end section Zone settings
             } //end if 
             section("Optional settings"){
@@ -380,6 +414,9 @@ def getURL(zType){
 		case "2":
 			return	"https://raw.githubusercontent.com/MikeMaxwell/zmm/master/triggered.png" 
             break
+		case "3":
+			return	"https://raw.githubusercontent.com/MikeMaxwell/zmm/master/triggered.png" 
+            break
  	}
 }
 
@@ -401,6 +438,14 @@ def getDescription(zType){
 					"\r\nThe zone remains active while motion continues within the Activity Timeout." +
 					"\r\nThe Activity Timeout is restarted on each motion sensor active event."+
                     "\r\nThe zone will deactivate when the Activity Timeout expires."
+            break
+		case "3":
+			return	"Zone is activated when Motion transfers from the first motion sensor to the second." +
+            		"\r\nUse this to activate a zone indicating a traversal from one motion sensor covered area to another." +
+            		"\r\nThe method to determine traversal from one area to another is by sensing motion at" +
+                    "\rthe first sensor, then motion in the second sensor followed by inactivity in the first sensor for a specific amount of time." +
+                    "\rThis gives a sense of traffic flow for better motion control but is not 100% perfect." +
+                    "\r\nThe zone will deactivate when Both Sensors are inactive."
             break
  	}
 }
